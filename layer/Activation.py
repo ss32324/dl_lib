@@ -6,7 +6,7 @@ class Sigmoid(Activation):
     def forward(self, x):
         # self.outputs = 1 / np.exp(-x)
         e = np.exp(x)
-        self.outputs = e / (e + 1)
+        self.outputs = np.nan_to_num(e / (e + 1))
         if self.next is not None:
             self.next.forward(self.outputs)
 
@@ -37,7 +37,7 @@ class Softmax(Activation):
 
     def forward(self, x):
         e = np.exp(x - np.max(x, axis=1, keepdims=True))
-        self.outputs = e / np.sum(e, axis=1, keepdims=True)
+        self.outputs = np.nan_to_num(e / np.sum(e, axis=1, keepdims=True))
         if self.next is not None:
             self.next.forward(self.outputs)
 

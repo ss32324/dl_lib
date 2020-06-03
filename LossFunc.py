@@ -22,7 +22,7 @@ class CategoricalCrossEntropy(LossFunc):
         return y - y_hat
 
     def calc_loss(self, y, y_hat):
-        log_y_hat = np.log(y_hat)
+        log_y_hat = np.nan_to_num(np.log(y_hat))
         loss = -np.sum(y * log_y_hat, axis=1)
         return loss
 
@@ -34,7 +34,7 @@ class BinaryCrossEntropy(LossFunc):
         return y - y_hat
 
     def calc_loss(self, y, y_hat):
-        log_y_hat = np.log(y_hat)
-        log_1m_y_hat = np.log(1 - y_hat)
+        log_y_hat = np.nan_to_num(np.log(y_hat))
+        log_1m_y_hat = np.nan_to_num(np.log(1 - y_hat))
         loss = -np.sum(y * log_y_hat + (1 - y) * log_1m_y_hat, axis=1)
         return loss
