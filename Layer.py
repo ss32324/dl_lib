@@ -36,6 +36,7 @@ class Flatten(Layer):
 
 class Dropout(Layer):
     def __init__(self, rate):
+        super().__init__()
         self.rate = rate
 
     def forward(self, inputs):

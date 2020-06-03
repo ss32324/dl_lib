@@ -35,7 +35,7 @@ class MaxPooling(Pool):
         # 取切割範圍最大值
         max_pool = np.max(split_imgs, axis=(2, 4), keepdims=True)
         self.max_pool_shape = max_pool.shape
-        self.mask = np.where(max_pool == split_imgs, 0, 1)
+        self.mask = np.where(max_pool == split_imgs, 1, 0)
         max_pool = max_pool.reshape((max_pool.shape[0], max_pool.shape[1], max_pool.shape[3], img_ch))
         if self.next is not None:
             self.next.forward(max_pool)

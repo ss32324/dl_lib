@@ -49,7 +49,7 @@ class MBGD(SGD):
         return increments / increments.shape[0]
 
 
-class Adam(MBGD):
+class Adam(SGD):
     ### ref. https://ruder.io/optimizing-gradient-descent/index.html#adam
     def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999):
         super().__init__(learning_rate=learning_rate)
