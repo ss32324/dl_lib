@@ -19,7 +19,13 @@ class Activation(Layer):
 
 ### Normalization Func
 class Normalization(Layer):
-    pass
+    def __init__(self):
+        self.gamma = None
+        self.beta = None
+
+    def _init_weights_bias(self, shape):
+        self.gamma = self.gamma if self.gamma is not None else np.ones(shape)
+        self.beta = self.beta if self.beta is not None else np.zeros(shape)
 
 ### Pool Layer
 class Pool(Layer):
