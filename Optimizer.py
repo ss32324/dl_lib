@@ -18,19 +18,18 @@ class Optimizer(Base):
         self.rm_list = []
         self.t = 0
 
-    def gd(self, deviation, layers):
+    def gd(self, deviation, layers, new_learning_rate=None):
         self.t += 1
         layers[-1].backward(deviation)
+        if new_learning_rate is None:
+            new_learning_rate = self.learning_rate
         for layer in layers:
             if isinstance(layer, Normalization):
-                layer.gamma += self.learning_rate * self._calc_new_increments(layer, 'gamma_increments')
-                layer.beta += self.learning_rate * self._calc_new_increments(layer, 'beta_increments')
-                # layer.gamma += self.learning_rate * layer.gamma_increments
-                # layer.beta += self.learning_rate * layer.beta_increments
-
+                layer.gamma += self.learning_rate * layer.gamma_increments
+                layer.beta += self.learning_rate * layer.beta_increments
             if isinstance(layer, FullyConnection):
-                layer.weights += self.learning_rate * self._calc_new_increments(layer, 'weights_increments')
-                layer.bias += self.learning_rate * self._calc_new_increments(layer, 'bias_increments')
+                layer.weights += new_learning_rate * self._calc_new_increments(layer, 'weights_increments')
+                layer.bias += new_learning_rate * self._calc_new_increments(layer, 'bias_increments')
 
 
 class SGD(Optimizer):
@@ -44,9 +43,8 @@ class MBGD(SGD):
     def __init__(self, learning_rate=0.001):
         super().__init__(learning_rate=learning_rate)
 
-    def _calc_new_increments(self, layer, var_name: str):
-        increments = super()._calc_new_increments(layer, var_name)
-        return increments / increments.shape[0]
+    def gd(self, deviation, layers):
+        super().gd(deviation, layers, self.learning_rate / deviation.shape[0])
 
 
 class Adam(SGD):

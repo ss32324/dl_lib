@@ -21,7 +21,7 @@ class Model:
             previous = layer
 
 
-    def fit(self, train_x, train_y, test_x, test_y, epoch=1, batch_size=32, isRandom=True, isCleanOpt=False):
+    def fit(self, train_x, train_y, test_x, test_y, epoch=1, batch_size=32, clean_opt=0):
         self.batch_size = batch_size
         results = {
             'val_acc': [], 'val_los': [],
@@ -51,8 +51,9 @@ class Model:
             results['val_acc'].append(accuracy)
             results['val_los'].append(loss)
 
-            if isCleanOpt:
-                self.optimizer.clean_layer_val(self.layers)
+            if clean_opt > 0:
+                if epoch % clean_opt == 0:
+                    self.optimizer.clean_layer_val(self.layers)
 
         return results
 
