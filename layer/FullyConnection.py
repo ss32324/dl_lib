@@ -86,7 +86,6 @@ class Conv(FullyConnection):
             pad_w = self.k_size - 1
             pad_w = pad_w // 2 if self.is_add_padding else pad_w
             split_deviation = Conv.split_feature_map(deviation, self.k_size, self.strides, p_width=pad_w)
-            split_deviation = np.rot90(split_deviation, 2)
-            self.previous.backward(np.tensordot(split_deviation, self.weights.T, axes=((3, 4, 5), (1, 2, 3))))
+            self.previous.backward(np.tensordot(split_deviation, np.rot90(self.weights, 2).T, axes=((3, 4, 5), (1, 2, 3))))
 
 

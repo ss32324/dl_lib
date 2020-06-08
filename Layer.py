@@ -23,9 +23,9 @@ class Normalization(Layer):
         self.gamma = None
         self.beta = None
 
-    def _init_weights_bias(self, shape):
-        self.gamma = self.gamma if self.gamma is not None else np.ones(shape)
-        self.beta = self.beta if self.beta is not None else np.zeros(shape)
+    def _init_weights_bias(self):
+        self.gamma = 1
+        self.beta = 0
 
 ### Pool Layer
 class Pool(Layer):

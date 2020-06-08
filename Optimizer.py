@@ -25,8 +25,10 @@ class Optimizer(Base):
             new_learning_rate = self.learning_rate
         for layer in layers:
             if isinstance(layer, Normalization):
-                layer.gamma += self.learning_rate * layer.gamma_increments
-                layer.beta += self.learning_rate * layer.beta_increments
+                layer.gamma += new_learning_rate * layer.gamma_increments
+                layer.gamma += new_learning_rate * layer.beta_increments
+                # layer.gamma += new_learning_rate * self._calc_new_increments(layer, 'gamma_increments')
+                # layer.beta += new_learning_rate * self._calc_new_increments(layer, 'beta_increments')
             if isinstance(layer, FullyConnection):
                 layer.weights += new_learning_rate * self._calc_new_increments(layer, 'weights_increments')
                 layer.bias += new_learning_rate * self._calc_new_increments(layer, 'bias_increments')
