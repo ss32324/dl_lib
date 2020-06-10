@@ -24,32 +24,13 @@ class Optimizer(Base):
         if new_learning_rate is None:
             new_learning_rate = self.learning_rate
         for layer in layers:
-            if isinstance(layer, Normalization):
-                layer.gamma += new_learning_rate * layer.gamma_increments
-                layer.gamma += new_learning_rate * layer.beta_increments
-                # layer.gamma += new_learning_rate * self._calc_new_increments(layer, 'gamma_increments')
-                # layer.beta += new_learning_rate * self._calc_new_increments(layer, 'beta_increments')
             if isinstance(layer, FullyConnection):
                 layer.weights += new_learning_rate * self._calc_new_increments(layer, 'weights_increments')
                 layer.bias += new_learning_rate * self._calc_new_increments(layer, 'bias_increments')
 
 
-class SGD(Optimizer):
-    ### ref. https://towardsdatascience.com/stochastic-gradient-descent-with-momentum-a84097641a5d
-    def __init__(self, learning_rate=0.0001):
-        super().__init__(learning_rate=learning_rate)
 
-
-class MBGD(SGD):
-    ### ref. https://towardsdatascience.com/batch-mini-batch-stochastic-gradient-descent-7a62ecba642a
-    def __init__(self, learning_rate=0.001):
-        super().__init__(learning_rate=learning_rate)
-
-    def gd(self, deviation, layers):
-        super().gd(deviation, layers, self.learning_rate / deviation.shape[0])
-
-
-class Adam(SGD):
+class Adam(Optimizer):
     ### ref. https://ruder.io/optimizing-gradient-descent/index.html#adam
     def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999):
         super().__init__(learning_rate=learning_rate)
@@ -61,9 +42,11 @@ class Adam(SGD):
         if not hasattr(layer, var_name + '_m'):
             self.rm_list.extend((var_name + '_m', var_name + '_v'))
             vars(layer)[var_name + '_m'] = vars(layer)[var_name + '_v'] = 0
-        vars(layer)[var_name + '_m'] = self.beta1 * vars(layer)[var_name + '_m'] + (1 - self.beta1) * increments
-        vars(layer)[var_name + '_v'] = self.beta2 * vars(layer)[var_name + '_v'] + (1 - self.beta2) * (increments** 2)
-        m_hat = vars(layer)[var_name + '_m'] / (1 - self.beta1 ** self.t)
-        v_hat = vars(layer)[var_name + '_v'] / (1 - self.beta2 ** self.t)
-        return m_hat / ((v_hat ** 0.5) + Adam.CONST_E)
+        m = self.beta1 * vars(layer)[var_name + '_m'] + (1 - self.beta1) * increments
+        v = self.beta2 * vars(layer)[var_name + '_v'] + (1 - self.beta2) * (increments ** 2)
+        m_hat = m / (1 - self.beta1 ** self.t)
+        v_hat = v / (1 - self.beta2 ** self.t)
+        vars(layer)[var_name + '_m'] = m
+        vars(layer)[var_name + '_v'] = v
+        return m_hat / ((v_hat  + Adam.CONST_E)** 0.5)
 

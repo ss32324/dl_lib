@@ -3,48 +3,36 @@ from ..Layer import Activation
 
 class Sigmoid(Activation):
 
-    def forward(self, x):
+    def act(self, x):
         # self.outputs = 1 / np.exp(-x)
         e = np.exp(x)
-        self.outputs = np.nan_to_num(e / (e + 1))
-        if self.next is not None:
-            self.next.forward(self.outputs)
+        y = e / (e + 1)
+        return super().act(y)
 
-    def backward(self, deviation):
-        if self.previous is not None:
-            if not self.is_pair_with_lossfunc:
-                bk_deviation = deviation * (self.outputs * (1 - self.outputs))
-                self.previous.backward(bk_deviation)
-            else:
-                self.previous.backward(deviation)
+    def dact(self, y):
+        dy = y * (1 - y)
+        return super().dact(dy)
+
 
 class ReLU(Activation):
 
-    def forward(self, x):
-        self.outputs = np.where(x > 0, x, 0)
-        if self.next is not None:
-            self.next.forward(self.outputs)
+    def act(self, x):
+        y = np.where(x > 0, x, 0)
+        return super().act(y)
 
-    def backward(self, deviation):
-        if self.previous is not None:
-            if not self.is_pair_with_lossfunc:
-                bk_deviation = deviation * np.where(self.outputs > 0, 1, 0)
-                self.previous.backward(bk_deviation)
-            else:
-                self.previous.backward(deviation)
+    def dact(self, y):
+        dy = np.where(y > 0, 1, 0)
+        return super().dact(dy)
+
 
 class Softmax(Activation):
 
-    def forward(self, x):
+    def act(self, x):
         e = np.exp(x - np.max(x, axis=1, keepdims=True))
-        self.outputs = np.nan_to_num(e / np.sum(e, axis=1, keepdims=True))
-        if self.next is not None:
-            self.next.forward(self.outputs)
+        y = e / np.sum(e, axis=1, keepdims=True)
+        return super().act(y)
 
-    def backward(self, deviation):
-        if self.previous is not None:
-            if not self.is_pair_with_lossfunc:
-                bk_deviation = deviation * (self.outputs * (1 - self.outputs))
-                self.previous.backward(bk_deviation)
-            else:
-                self.previous.backward(deviation)
+    def dact(self, y):
+        dy = y * (1 - y)
+        return super().dact(dy)
+

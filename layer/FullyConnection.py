@@ -28,8 +28,8 @@ class Dense(FullyConnection):
 
     def backward(self, deviation):
         # 輸出對權重的增量
-        self.weights_increments = np.dot(self.inputs.T, deviation)
-        self.bias_increments = np.sum(deviation, axis=0, keepdims=True)
+        self.weights_increments = np.dot(self.inputs.T, deviation) / deviation.shape[0]
+        self.bias_increments = np.sum(deviation, axis=0, keepdims=True) / deviation.shape[0]
         if self.previous is not None:
             # 往前一層的偏差
             self.previous.backward(np.dot(deviation, self.weights.T))
@@ -78,8 +78,8 @@ class Conv(FullyConnection):
 
     def backward(self, deviation):
         # 輸出對權重的增量
-        self.weights_increments = np.tensordot(deviation, self.split_imgs, axes=((0, 1, 2), (0, 1, 2)))
-        self.bias_increments = np.sum(np.tensordot(deviation, np.ones((*self.split_imgs.shape[:-1], 1)), axes=((0, 1, 2), (0, 1, 2))), axis=(1, 2))
+        self.weights_increments = np.tensordot(deviation, self.split_imgs, axes=((0, 1, 2), (0, 1, 2))) / (deviation.shape[0] * self.k_size * self.k_size)
+        self.bias_increments = np.sum(np.tensordot(deviation, np.ones((*self.split_imgs.shape[:-1], 1)), axes=((0, 1, 2), (0, 1, 2))), axis=(1, 2)) / (deviation.shape[0] * self.k_size * self.k_size)
 
         if self.previous is not None:
             # 往前一層的偏差

@@ -40,13 +40,11 @@ class Model:
 
             print('\n<{:02d}> {}'.format(_i+1, '-'*80))
             # training
-            Layer.is_training = True
             accuracy, loss = self._train(train_x[indexes], train_y[indexes])
             results['acc'].append(accuracy)
             results['los'].append(loss)
-            Layer.is_training = False
 
-            # testing
+            # verifying
             accuracy, loss = self.evaluate(test_x, test_y)
             results['val_acc'].append(accuracy)
             results['val_los'].append(loss)
@@ -71,9 +69,9 @@ class Model:
             acc, los = self.calc_accuracy(batch_y, y_hat), self.calc_loss(batch_y, y_hat)
             accuracy += float(acc)
             loss += float(los)
-            print('    evaluate[{:25}] acc:{:2.2f}, loss:{:2.4f}'.format('='*(25*i//iterations)+'>', accuracy / (i + 1) * 100, loss / (i + 1)), end='\r')
+            print('    evaluate[{:25}] acc:{:.2f}, loss:{:.3e}'.format('='*(25*i//iterations)+'>', accuracy / (i + 1) * 100, loss / (i + 1)), end='\r')
         print()
-        return accuracy/iterations, loss/iterations
+        return accuracy / iterations, loss / iterations
 
     def get_diff(self, x, y, batch_size: int=None):
         batch_size = self.batch_size if batch_size is None else batch_size
@@ -102,12 +100,12 @@ class Model:
 
     def calc_loss(self, y, y_hat):
         y = y.reshape((*y.shape[0:2])) if y.ndim == 3 else y
-        return np.mean(self.lossfunc.calc_loss(y, y_hat))
+        return np.nan_to_num(np.mean(self.lossfunc.calc_loss(y, y_hat)))
 
     def calc_accuracy(self, y, y_hat):
         y = y.reshape((*y.shape[0:2])) if y.ndim == 3 else y
         compare = np.equal(np.argmax(y_hat, axis=1), np.argmax(y, axis=1))
-        return np.mean(compare)
+        return np.nan_to_num(np.mean(compare))
 
     def compile(self, optimizer: Optimizer, lossfunc: LossFunc):
         self.optimizer = optimizer
@@ -129,15 +127,29 @@ class Model:
         for i in range(iterations):
             batch_x = train_x[i * batch_size:(i + 1) * batch_size]
             batch_y = train_y[i * batch_size:(i + 1) * batch_size]
+
+            ### training
+            Layer.is_train = True
             # --> 輸入到輸出 -->
             outputs = self._forward(batch_x)
-            acc, los = self.calc_accuracy(batch_y, outputs), self.calc_loss(batch_y, outputs)
-            accuracy += float(acc)
-            loss += float(los)
-            print('    training[{:25}] acc:{:2.2f}, loss:{:2.4f}'.format('='*(25*i//iterations)+'>', accuracy / (i + 1) * 100, loss / (i + 1)), end='\r')
             # <-- 反向傳遞 <--
             deviation = self.lossfunc.backprop(batch_y, outputs)
             self.optimizer.gd(deviation, self.layers)
+
+            ### testing
+            Layer.is_train = False
+            # --> 輸入到輸出 -->
+            outputs = self._forward(batch_x)
+            # <-- 反向傳遞 <--
+            deviation = self.lossfunc.backprop(batch_y, outputs)
+            self.optimizer.gd(deviation, self.layers)
+
+            ### 印出
+            acc, los = self.calc_accuracy(batch_y, outputs), self.calc_loss(batch_y, outputs)
+            accuracy += float(acc)
+            loss += float(los)
+            print('    training[{:25}] acc:{:.2f}, loss:{:.3e}'.format('='*(25*i//iterations)+'>', accuracy / (i + 1) * 100, loss / (i + 1)), end='\r')
+
         print()
         return accuracy / iterations, loss / iterations
 
